@@ -4,6 +4,8 @@ import requests
 
 log = logging.getLogger(__name__)
 
+JSON_CONTENT_TYPE = 'application/vnd.api+json'
+
 
 class LIIWebClient:
     """ A client for the LIIWeb JSON API that makes it easier to work with content in LIIWeb.
