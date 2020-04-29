@@ -12,7 +12,7 @@ with open(path.join(here, 'VERSION')) as f:
     version = f.read().strip()
 
 setup(
-    name='liiweb-client-python',
+    name='liiweb-client',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
