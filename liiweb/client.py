@@ -25,7 +25,7 @@ class LIIWebClient:
         })
         self.url = url
 
-    def get_legislation(self, frbr_uri, fields=('frbr_uri',)):
+    def get_legislation(self, frbr_uri, fields=('field_frbr_uri',)):
         """ Fetch a single legislation expression, if it exists, by filtering on the FRBR URI. We do this because there
         is no GET endpoint for an expression without having to know the node id.
 
@@ -73,8 +73,8 @@ class LIIWebClient:
 
         return results
 
-    def create_legislation(self, info):
-        """ Create a new legislation expression and return the full description.
+    def create_legislation_work(self, info):
+        """ Create a new legislation work and expression and return the full description.
 
         :param info: full description of the legislation, in Drupal JSON format
         """
@@ -87,22 +87,37 @@ class LIIWebClient:
         resp.raise_for_status()
         return resp.json()['data']
 
-    def delete_legislation(self, nid):
+    def create_legislation(self, expr_uri, info):
+        """ Create a new legislation expression and return the full description.
+
+        :param expr_uri: expression URI
+        :param info: full description of the legislation, in Drupal JSON format
+        """
+        resp = self.session.post(
+            self.url + expr_uri,
+            json=info,
+            headers={'Content-Type': JSON_CONTENT_TYPE})
+        if resp.status_code >= 400:
+            log.error(f"Error from lii: {resp.text}")
+        resp.raise_for_status()
+        return resp.json()['data']
+
+    def delete_legislation(self, expr_uri):
         """ Delete legislation by node id.
 
         :param nid: legislation node id to delete
         """
-        resp = self.session.delete(self.url + f'/jsonapi/node/legislation/{nid}')
+        resp = self.session.delete(self.url + expr_uri)
         resp.raise_for_status()
 
-    def update_legislation(self, nid, info):
+    def update_legislation(self, expr_uri, info):
         """ Patch an existing legislation by node id.
 
-        :param nid: legislation node id to update
+        :param expr_uri: expression FRBR URI
         :param info: updated information, in Drupal JSON format
         """
         resp = self.session.patch(
-            self.url + f'/jsonapi/node/legislation/{nid}',
+            self.url + expr_uri,
             json=info,
             headers={'Content-Type': JSON_CONTENT_TYPE})
         resp.raise_for_status()
