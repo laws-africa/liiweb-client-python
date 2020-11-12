@@ -25,19 +25,20 @@ class LIIWebClient:
         })
         self.url = url
 
-    def get_legislation(self, frbr_uri, fields=('field_frbr_uri',)):
-        """ Fetch a single legislation expression, if it exists, by filtering on the FRBR URI. We do this because there
-        is no GET endpoint for an expression without having to know the node id.
+    def find_legislation(self, frbr_uri_prefix, fields=('field_frbr_uri',)):
+        """ Fetch a single legislation expression, if it exists, by filtering on the FRBR URI.
+        We do this because there is no GET endpoint for a work FRBR URI, only an expression FRBR URI.
 
         By default, only fetches the id and frbr_uri fields. Specify a list of fields to fetch otherwise.
 
-        :param frbr_uri: legislation FRBR URI.
+        :param frbr_uri_prefix: legislation FRBR URI.
         :param fields: a tuple of fields to fetch, in addition to the node id.
         """
         params = {
-            'filter[field_frbr_uri][value]': frbr_uri,
+            'filter[field_frbr_uri][value]': frbr_uri_prefix,
             'filter[field_frbr_uri][operator]': 'STARTS_WITH'
         }
+
         if fields:
             params['fields[node--legislation]'] = ','.join(fields)
 
@@ -46,6 +47,26 @@ class LIIWebClient:
         info = resp.json()
         if info['data']:
             return info['data'][0]
+
+    def get_legislation(self, expr_uri, fields=('field_frbr_uri',)):
+        """ Fetch a single legislation expression, if it exists.
+
+        By default, only fetches the id and frbr_uri fields. Specify a list of fields to fetch otherwise.
+
+        :param expr_uri: legislation FRBR URI.
+        :param fields: a tuple of fields to fetch, in addition to the node id.
+        """
+        params = {}
+        if fields:
+            params['fields[node--legislation]'] = ','.join(fields)
+
+        resp = self.session.get(self.url + expr_uri, params=params)
+        if resp.status_code == 404:
+            return
+        resp.raise_for_status()
+        info = resp.json()
+        if info['data']:
+            return info['data']
 
     def list_legislation(self, place_code):
         """ List all legislation expressions for a place.
