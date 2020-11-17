@@ -56,11 +56,15 @@ class LIIWebClient:
         :param expr_uri: legislation FRBR URI.
         :param fields: a tuple of fields to fetch, in addition to the node id.
         """
+        # the GET request requires this accept header, not the default one
+        headers = {
+            'Accept': 'application/json',
+        }
         params = {}
         if fields:
             params['fields[node--legislation]'] = ','.join(fields)
 
-        resp = self.session.get(self.url + expr_uri, params=params)
+        resp = self.session.get(self.url + expr_uri, params=params, headers=headers)
         if resp.status_code == 404:
             return
         resp.raise_for_status()
@@ -142,6 +146,7 @@ class LIIWebClient:
             json=info,
             headers={'Content-Type': JSON_CONTENT_TYPE})
         resp.raise_for_status()
+        return resp.json()['data']
 
     def upload_file(self, node, fname, data, fieldname):
         """ Upload a file to the lii and return the node id.
