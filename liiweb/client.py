@@ -43,7 +43,7 @@ class LIIWebClient:
             params['fields[node--legislation]'] = ','.join(fields)
 
         resp = self.session.get(self.url + '/jsonapi/node/legislation', params=params)
-        resp.raise_for_status()
+        self.check_for_error(resp)
         info = resp.json()
         if info['data']:
             return info['data'][0]
@@ -67,7 +67,7 @@ class LIIWebClient:
         resp = self.session.get(self.url + expr_uri, params=params, headers=headers)
         if resp.status_code == 404:
             return
-        resp.raise_for_status()
+        self.check_for_error(resp)
         info = resp.json()
         if info['data']:
             return info['data']
@@ -86,7 +86,7 @@ class LIIWebClient:
         url = self.url + '/jsonapi/node/legislation'
         while url:
             resp = self.session.get(url, params=params)
-            resp.raise_for_status()
+            self.check_for_error(resp)
             info = resp.json()
             results.extend(info['data'])
             # pagination
@@ -107,9 +107,7 @@ class LIIWebClient:
             self.url + '/jsonapi/node/legislation',
             json=info,
             headers={'Content-Type': JSON_CONTENT_TYPE})
-        if resp.status_code >= 400:
-            log.error(f"Error from lii: {resp.text}")
-        resp.raise_for_status()
+        self.check_for_error(resp)
         return resp.json()['data']
 
     def create_legislation(self, expr_uri, info):
@@ -122,9 +120,7 @@ class LIIWebClient:
             self.url + expr_uri,
             json=info,
             headers={'Content-Type': JSON_CONTENT_TYPE})
-        if resp.status_code >= 400:
-            log.error(f"Error from lii: {resp.text}")
-        resp.raise_for_status()
+        self.check_for_error(resp)
         return resp.json()['data']
 
     def delete_legislation(self, expr_uri):
@@ -133,7 +129,7 @@ class LIIWebClient:
         :param nid: legislation node id to delete
         """
         resp = self.session.delete(self.url + expr_uri)
-        resp.raise_for_status()
+        self.check_for_error(resp)
 
     def update_legislation(self, expr_uri, info):
         """ Patch an existing legislation by node id.
@@ -145,7 +141,7 @@ class LIIWebClient:
             self.url + expr_uri,
             json=info,
             headers={'Content-Type': JSON_CONTENT_TYPE})
-        resp.raise_for_status()
+        self.check_for_error(resp)
         return resp.json()['data']
 
     def upload_file(self, node, fname, data, fieldname):
@@ -166,9 +162,7 @@ class LIIWebClient:
                 'Content-Disposition': f'attachment; filename="{fname}"',
             }
         )
-        if resp.status_code >= 400:
-            log.error(f"Error from lii: {resp.text}")
-        resp.raise_for_status()
+        self.check_for_error(resp)
         return resp.json()['data']['id']
 
     def list_legislation_files(self, nid, field):
@@ -178,5 +172,12 @@ class LIIWebClient:
         :param field: file type to list, either 'field_images' or 'field_files'
         """
         resp = self.session.get(self.url + f"/jsonapi/node/legislation/{nid}/{field}")
-        resp.raise_for_status()
+        self.check_for_error(resp)
         return resp.json()['data']
+
+    def check_for_error(self, resp):
+        try:
+            resp.raise_for_status()
+        except:
+            log.error(f"Error from lii: {resp.text}")
+            raise
