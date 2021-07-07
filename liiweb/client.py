@@ -10,6 +10,8 @@ JSON_CONTENT_TYPE = 'application/vnd.api+json'
 class LIIWebClient:
     """ A client for the LIIWeb JSON API that makes it easier to work with content in LIIWeb.
     """
+    timeout = 5 * 60
+
     def __init__(self, url, username, password):
         """
         Create a new client.
@@ -42,7 +44,7 @@ class LIIWebClient:
         if fields:
             params['fields[node--legislation]'] = ','.join(fields)
 
-        resp = self.session.get(self.url + '/jsonapi/node/legislation', params=params)
+        resp = self.session.get(self.url + '/jsonapi/node/legislation', params=params, timeout=self.timeout)
         self.check_for_error(resp)
         info = resp.json()
         if info['data']:
@@ -64,7 +66,7 @@ class LIIWebClient:
         if fields:
             params['fields[node--legislation]'] = ','.join(fields)
 
-        resp = self.session.get(self.url + expr_uri, params=params, headers=headers)
+        resp = self.session.get(self.url + expr_uri, params=params, headers=headers, timeout=self.timeout)
         if resp.status_code == 404:
             return
         self.check_for_error(resp)
@@ -85,7 +87,7 @@ class LIIWebClient:
         }
         url = self.url + '/jsonapi/node/legislation'
         while url:
-            resp = self.session.get(url, params=params)
+            resp = self.session.get(url, params=params, timeout=self.timeout)
             self.check_for_error(resp)
             info = resp.json()
             results.extend(info['data'])
@@ -106,7 +108,8 @@ class LIIWebClient:
         resp = self.session.post(
             self.url + '/jsonapi/node/legislation',
             json=info,
-            headers={'Content-Type': JSON_CONTENT_TYPE})
+            headers={'Content-Type': JSON_CONTENT_TYPE},
+            timeout=self.timeout)
         self.check_for_error(resp)
         return resp.json()['data']
 
@@ -119,7 +122,8 @@ class LIIWebClient:
         resp = self.session.post(
             self.url + expr_uri,
             json=info,
-            headers={'Content-Type': JSON_CONTENT_TYPE})
+            headers={'Content-Type': JSON_CONTENT_TYPE},
+            timeout=self.timeout)
         self.check_for_error(resp)
         return resp.json()['data']
 
@@ -128,7 +132,7 @@ class LIIWebClient:
 
         :param nid: legislation node id to delete
         """
-        resp = self.session.delete(self.url + expr_uri)
+        resp = self.session.delete(self.url + expr_uri, timeout=self.timeout)
         self.check_for_error(resp)
 
     def update_legislation(self, expr_uri, info):
@@ -140,7 +144,8 @@ class LIIWebClient:
         resp = self.session.patch(
             self.url + expr_uri,
             json=info,
-            headers={'Content-Type': JSON_CONTENT_TYPE})
+            headers={'Content-Type': JSON_CONTENT_TYPE},
+            timeout=self.timeout)
         self.check_for_error(resp)
         return resp.json()['data']
 
@@ -160,7 +165,8 @@ class LIIWebClient:
             headers={
                 'Content-Type': 'application/octet-stream',
                 'Content-Disposition': f'attachment; filename="{fname}"',
-            }
+            },
+            timeout=self.timeout
         )
         self.check_for_error(resp)
         return resp.json()['data']['id']
@@ -171,7 +177,7 @@ class LIIWebClient:
         :param nid: legislation node id
         :param field: file type to list, either 'field_images' or 'field_files'
         """
-        resp = self.session.get(self.url + f"/jsonapi/node/legislation/{nid}/{field}")
+        resp = self.session.get(self.url + f"/jsonapi/node/legislation/{nid}/{field}", timeout=self.timeout)
         self.check_for_error(resp)
         return resp.json()['data']
 
