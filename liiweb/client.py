@@ -111,7 +111,11 @@ class LIIWebClient:
             headers={'Content-Type': JSON_CONTENT_TYPE},
             timeout=self.timeout)
         self.check_for_error(resp)
-        return resp.json()['data']
+        info = resp.json()['data']
+        if not info:
+            log.error(f"Empty response to POST: {resp}: Headers: {resp.headers} -- Body: {resp.text}")
+            raise Exception(f"LII returned empty response when creating work: {resp.text}")
+        return info
 
     def create_legislation(self, expr_uri, info):
         """ Create a new legislation expression and return the full description.
@@ -125,7 +129,11 @@ class LIIWebClient:
             headers={'Content-Type': JSON_CONTENT_TYPE},
             timeout=self.timeout)
         self.check_for_error(resp)
-        return resp.json()['data']
+        info = resp.json()['data']
+        if not info:
+            log.error(f"Empty response to POST: {resp}: Headers: {resp.headers} -- Body: {resp.text}")
+            raise Exception(f"LII returned empty response when creating work: {resp.text}")
+        return info
 
     def delete_legislation(self, expr_uri):
         """ Delete legislation by node id.
