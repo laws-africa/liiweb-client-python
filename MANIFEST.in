@@ -1,2 +1,2 @@
 include LICENSE README.md VERSION
-recursive-include liiweb *.py
+recursive-include liiweb_client *.py
